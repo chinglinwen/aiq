@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	modelFlag       = flag.String("m", "gemini-2.5-flash", "model version (e.g., gemini-2.5-pro, gemini-2.5-flash)")
-	providerFlag    = flag.String("p", "gemini", "AI provider (currently only gemini is supported)")
-	systemFlag      = flag.String("s", "", "system instruction to guide the AI's behavior")
-	shellFlag       = flag.Bool("shell", false, "output only shell commands (for piping to shell)")
-	jsonFlag        = flag.Bool("json", false, "output response in JSON format")
+	modelFlag    = flag.String("m", "gemini-2.5-flash", "model version (e.g., gemini-pro, gemini-2.5-flash, gemini-2.5-pro)")
+	providerFlag = flag.String("p", "gemini", "AI provider (currently only gemini is supported)")
+	systemFlag   = flag.String("s", "", "system instruction to guide the AI's behavior")
+	shellFlag    = flag.Bool("shell", false, "output only shell commands (for piping to shell)")
+	jsonFlag     = flag.Bool("json", false, "output response in JSON format")
 )
 
 func main() {
@@ -104,43 +104,28 @@ func queryGemini(prompt, data, model, systemInstruction string, shellMode, jsonM
 	// Get the model
 	genModel := client.GenerativeModel(model)
 
-	// Set system instruction if provided
+	// Build combined system instruction
+	var instructions []string
+
 	if systemInstruction != "" {
-		genModel.SystemInstruction = &genai.Content{
-			Parts: []genai.Part{genai.Text(systemInstruction)},
-		}
+		instructions = append(instructions, systemInstruction)
 	}
 
-	// Add shell mode instruction if enabled
 	if shellMode {
 		shellInstruction := "You are a shell command generator. Output ONLY the shell command(s) needed, with no explanations, no markdown, no code blocks, no additional text. Just the raw command(s) that can be directly piped to a shell."
-		if systemInstruction != "" {
-			genModel.SystemInstruction = &genai.Content{
-				Parts: []genai.Part{genai.Text(systemInstruction + " " + shellInstruction)},
-			}
-		} else {
-			genModel.SystemInstruction = &genai.Content{
-				Parts: []genai.Part{genai.Text(shellInstruction)},
-			}
-		}
+		instructions = append(instructions, shellInstruction)
 	}
 
-	// Add JSON mode instruction if enabled
 	if jsonMode {
 		jsonInstruction := "You must respond with valid JSON only. Do not include markdown code blocks, explanations, or any text outside the JSON structure. Output raw JSON that can be directly parsed."
-		if systemInstruction != "" || shellMode {
-			// Append to existing instruction
-			existingInstruction := ""
-			if genModel.SystemInstruction != nil && len(genModel.SystemInstruction.Parts) > 0 {
-				existingInstruction = fmt.Sprintf("%v", genModel.SystemInstruction.Parts[0])
-			}
-			genModel.SystemInstruction = &genai.Content{
-				Parts: []genai.Part{genai.Text(existingInstruction + " " + jsonInstruction)},
-			}
-		} else {
-			genModel.SystemInstruction = &genai.Content{
-				Parts: []genai.Part{genai.Text(jsonInstruction)},
-			}
+		instructions = append(instructions, jsonInstruction)
+	}
+
+	// Set combined system instruction if any instructions exist
+	if len(instructions) > 0 {
+		combinedInstruction := strings.Join(instructions, " ")
+		genModel.SystemInstruction = &genai.Content{
+			Parts: []genai.Part{genai.Text(combinedInstruction)},
 		}
 	}
 
