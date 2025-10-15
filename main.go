@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
@@ -33,16 +32,7 @@ func main() {
 	if len(args) == 0 {
 		fmt.Fprintln(os.Stderr, "Error: query prompt is required")
 		fmt.Fprintln(os.Stderr, "Usage: aiq [flags] <query prompt>")
-		fmt.Fprintln(os.Stderr, "  -m string")
-		fmt.Fprintln(os.Stderr, "        model version (default \"gemini-pro\")")
-		fmt.Fprintln(os.Stderr, "  -p string")
-		fmt.Fprintln(os.Stderr, "        AI provider (default \"gemini\")")
-		fmt.Fprintln(os.Stderr, "  -s string")
-		fmt.Fprintln(os.Stderr, "        system instruction to guide the AI's behavior")
-		fmt.Fprintln(os.Stderr, "  -shell")
-		fmt.Fprintln(os.Stderr, "        output only shell commands (for piping to shell)")
-		fmt.Fprintln(os.Stderr, "  -json")
-		fmt.Fprintln(os.Stderr, "        output response in JSON format")
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 	queryPrompt := strings.Join(args, " ")
@@ -52,21 +42,12 @@ func main() {
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
 		// Data is being piped to stdin
-		reader := bufio.NewReader(os.Stdin)
-		var builder strings.Builder
-		for {
-			line, err := reader.ReadString('\n')
-			if err != nil {
-				if err != io.EOF {
-					fmt.Fprintf(os.Stderr, "Error reading stdin: %v\n", err)
-					os.Exit(1)
-				}
-				builder.WriteString(line)
-				break
-			}
-			builder.WriteString(line)
+		stdinBytes, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading stdin: %v\n", err)
+			os.Exit(1)
 		}
-		stdinData = builder.String()
+		stdinData = string(stdinBytes)
 	}
 
 	// Execute the query based on provider
@@ -106,16 +87,13 @@ func queryGemini(prompt, data, model, systemInstruction string, shellMode, jsonM
 
 	// Build combined system instruction
 	var instructions []string
-
 	if systemInstruction != "" {
 		instructions = append(instructions, systemInstruction)
 	}
-
 	if shellMode {
 		shellInstruction := "You are a shell command generator. Output ONLY the shell command(s) needed, with no explanations, no markdown, no code blocks, no additional text. Just the raw command(s) that can be directly piped to a shell."
 		instructions = append(instructions, shellInstruction)
 	}
-
 	if jsonMode {
 		jsonInstruction := "You must respond with valid JSON only. Do not include markdown code blocks, explanations, or any text outside the JSON structure. Output raw JSON that can be directly parsed."
 		instructions = append(instructions, jsonInstruction)

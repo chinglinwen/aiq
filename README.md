@@ -29,7 +29,7 @@ aiq -json "List 3 programming languages"
 - Read data from stdin
 - Query prompt from command arguments
 - Flags:
-  - `-m` for model version (default: "gemini-pro")
+  - `-m` for model version (default: "gemini-2.5-flash")
   - `-p` for provider (default: "gemini")
   - `-s` for system instruction to guide AI behavior
   - `-shell` for shell command output mode (outputs only commands, no explanations)
@@ -143,9 +143,11 @@ cat logs.txt | aiq -m gemini-1.5-flash "Analyze these logs for errors"
 
 ## Available Models
 
-- `gemini-pro` (default)
+- `gemini-2.5-flash` (default)
+- `gemini-2.5-pro`
 - `gemini-1.5-flash`
 - `gemini-1.5-pro`
+- `gemini-pro`
 
 ## Examples
 

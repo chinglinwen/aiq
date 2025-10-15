@@ -26,9 +26,6 @@ go.work
 # Qoder IDE configuration
 .qoder/
 
-# env file
-.env
-
 # Editor/IDE
 # .idea/
 # .vscode/
