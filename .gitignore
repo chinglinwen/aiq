@@ -23,6 +23,9 @@ go.work
 # Environment variables
 .env
 
+# Qoder IDE configuration
+.qoder/
+
 # env file
 .env
 
