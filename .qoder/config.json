@@ -1,0 +1,16 @@
+{
+  "project": "aiq",
+  "description": "Simple command line tool for AI query using Google Gemini API",
+  "version": "1.0.0",
+  "language": "go",
+  "main_files": [
+    "main.go"
+  ],
+  "build_command": "go build -o aiq",
+  "test_command": "go test ./...",
+  "dependencies": [
+    "github.com/google/generative-ai-go",
+    "github.com/joho/godotenv",
+    "google.golang.org/api"
+  ]
+}
